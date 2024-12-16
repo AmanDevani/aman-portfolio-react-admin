@@ -1,0 +1,18 @@
+<svg
+  width="180"
+  height="40"
+  viewBox="0 0 180 40"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <text
+    x="50%"
+    y="50%"
+    font-family="Poppins, Arial, sans-serif"
+    font-size="40"
+    fill="#414BB2"
+    text-anchor="middle"
+    dominant-baseline="middle"
+  >
+    Aman
+  </text>
+</svg>

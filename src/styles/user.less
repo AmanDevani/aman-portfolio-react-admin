@@ -1,0 +1,74 @@
+.add-user-wrapper {
+  .ant-row {
+    .ant-col {
+      width: 50%;
+    }
+  }
+}
+
+.movies-sidebar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  position: sticky;
+  top: -34px;
+  z-index: 3;
+
+  @media @screen767 {
+    top: -22px;
+  }
+
+  @media @screen540 {
+    flex-direction: column;
+  }
+
+  .movie-filter-right {
+    @media @screen991 {
+      flex: 0.9;
+    }
+    @media @screen540 {
+      margin-bottom: 8px;
+    }
+  }
+
+  .movie-filter-left {
+    @media @screen540 {
+      margin-bottom: 8px;
+      margin-top: 16px;
+    }
+  }
+
+  .movie-filter {
+    .ant-space {
+      @media @screen540 {
+        width: 100%;
+
+        .ant-space-item {
+          flex: 1;
+        }
+
+        .ant-select {
+          width: 100% !important;
+        }
+      }
+    }
+  }
+}
+
+.movie-filter {
+  display: flex;
+  align-items: center;
+
+  h3 {
+    margin-bottom: 0;
+  }
+}
+.card-body-wrapper {
+  .ant-typography {
+    margin-bottom: unset;
+    font-size: 16px;
+    .ant-typography-copy {
+      color: black;
+    }
+  }
+}
