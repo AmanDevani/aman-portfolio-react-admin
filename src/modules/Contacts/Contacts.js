@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Select, Space, Tooltip, Typography } from 'antd';
 import { map } from 'lodash';
-import { DeleteOutlined } from '@ant-design/icons';
+import { CloudDownloadOutlined, DeleteOutlined } from '@ant-design/icons';
 import { FIRESTORE_DB, ORDER } from '../../common/constants';
-import SearchComponent from '../../components/SearchComponent';
 import TableComponent from '../../components/CommonTable';
-import { deleteDocument, getAllDocsFromStore } from '../../common/utils';
+import {
+  deleteDocument,
+  exportDataAsCSV,
+  getAllDocsFromStore,
+} from '../../common/utils';
 import {
   messageContext,
   modalContext,
@@ -22,7 +25,6 @@ const Contacts = () => {
     filters: [],
     order: [{ field: 'email', direction: 'desc' }],
     pagination: { pageSize: 10, lastVisible: null },
-    search: {},
   });
 
   const [tableParams, setTableParams] = useState({
@@ -35,13 +37,14 @@ const Contacts = () => {
     },
   });
 
-  const handleSearchChange = (value) => {
-    const searchValue = value;
-    setOptions({
-      ...options,
-      search: { field: 'email', value: searchValue },
-    });
-  };
+  const exportContactFields = [
+    'id',
+    'createdAt',
+    'name',
+    'email',
+    'subject',
+    'message',
+  ];
 
   const fetchContacts = () => {
     setLoading(true);
@@ -88,7 +91,7 @@ const Contacts = () => {
     setSort(value);
     setOptions({
       ...options,
-      order: [{ field: 'email', direction: value }],
+      order: [{ field: 'createdAt', direction: value }],
     });
   };
 
@@ -198,7 +201,19 @@ const Contacts = () => {
               </div>
               <div className="movie-filter-right">
                 <div className="movie-filter">
-                  <SearchComponent getData={handleSearchChange} />
+                  <Tooltip title="Export Contacts">
+                    <Button
+                      className="ml-16 export-icon"
+                      type="text"
+                      onClick={() =>
+                        exportDataAsCSV(
+                          FIRESTORE_DB.CONTACTS,
+                          exportContactFields,
+                        )
+                      }
+                      icon={<CloudDownloadOutlined />}
+                    />
+                  </Tooltip>
                 </div>
               </div>
             </div>

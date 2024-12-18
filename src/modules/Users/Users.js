@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Card, Select, Space, Tooltip, Typography } from 'antd';
 import { map } from 'lodash';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CloudDownloadOutlined } from '@ant-design/icons';
 import { FIRESTORE_DB, ORDER, ROUTES } from '../../common/constants';
 import useRouter from '../../hooks/useRouter';
-import SearchComponent from '../../components/SearchComponent';
 import TableComponent from '../../components/CommonTable';
 import {
   deleteDocument,
+  exportDataAsCSV,
   forgotPassword,
   getAllDocsFromStore,
 } from '../../common/utils';
@@ -30,7 +30,6 @@ const Users = () => {
     filters: [],
     order: [{ field: 'email', direction: 'desc' }],
     pagination: { pageSize: 10, lastVisible: null },
-    search: {},
   });
 
   const [tableParams, setTableParams] = useState({
@@ -43,13 +42,14 @@ const Users = () => {
     },
   });
 
-  const handleSearchChange = (value) => {
-    const searchValue = value;
-    setOptions({
-      ...options,
-      search: { field: 'email', value: searchValue },
-    });
-  };
+  const exportUserFields = [
+    'id',
+    'createdAt',
+    'email',
+    'firstName',
+    'lastName',
+    'userName',
+  ];
 
   const fetchUsers = () => {
     setLoading(true);
@@ -109,7 +109,7 @@ const Users = () => {
     setSort(value);
     setOptions({
       ...options,
-      order: [{ field: 'email', direction: value }],
+      order: [{ field: 'createdAt', direction: value }],
     });
   };
 
@@ -153,7 +153,7 @@ const Users = () => {
           type="text"
           className="text-btn"
           onClick={() => handleResetPassWord(email)}
-          loading={resetPassLoading}
+          disabled={resetPassLoading}
         >
           <ResetPasswordIcon width={25} height={25} className="mb-4" />
         </Button>
@@ -242,7 +242,6 @@ const Users = () => {
               </div>
               <div className="movie-filter-right">
                 <div className="movie-filter">
-                  <SearchComponent getData={handleSearchChange} />
                   <Button
                     className="ml-8"
                     key="1"
@@ -253,6 +252,16 @@ const Users = () => {
                   >
                     Add User
                   </Button>
+                  <Tooltip title="Export Users">
+                    <Button
+                      className="ml-16 export-icon"
+                      type="text"
+                      onClick={() =>
+                        exportDataAsCSV(FIRESTORE_DB.USERS, exportUserFields)
+                      }
+                      icon={<CloudDownloadOutlined />}
+                    />
+                  </Tooltip>
                 </div>
               </div>
             </div>

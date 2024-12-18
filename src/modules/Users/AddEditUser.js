@@ -15,6 +15,7 @@ import {
   ADD_USER_TYPE,
   defaultDateFormat,
   FIRESTORE_DB,
+  GUTTER_VARIATIONS,
   ROUTES,
 } from '../../common/constants';
 
@@ -156,8 +157,8 @@ const AddEditUser = () => {
               disabled={loading}
               initialValues={initialValues}
             >
-              <Row gutter={16}>
-                <Col span={12}>
+              <Row gutter={GUTTER_VARIATIONS}>
+                <Col xs={24} sm={12} lg={12}>
                   <Form.Item name="type" label="Select Method">
                     <Radio.Group>
                       <Radio value={ADD_USER_TYPE?.BY_UID}>By Uid</Radio>
@@ -207,7 +208,7 @@ const AddEditUser = () => {
                     <Input placeholder="Enter Email" />
                   </Form.Item>
                 </Col>
-                <Col>
+                <Col xs={24} sm={12} lg={12}>
                   <Form.Item
                     name="userName"
                     label="User Name"

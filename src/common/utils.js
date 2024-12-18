@@ -22,8 +22,8 @@ import {
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { REGEX } from './constants';
+import { messageContext } from '../components/AppContextHolder';
 
-// eslint-disable-next-line import/prefer-default-export
 export const formValidatorRules = {
   required: {
     required: true,
@@ -84,26 +84,27 @@ export const forgotPassword = (email) => sendPasswordResetEmail(auth, email);
 export const resetPassword = (oobCode, newPassword) =>
   confirmPasswordReset(auth, oobCode, newPassword);
 
-export const setDocTOFireStore = (DB_NAME, uid, schemaToFireStore) =>
-  setDoc(doc(db, DB_NAME, uid), schemaToFireStore);
+export const setDocTOFireStore = (collectionName, uid, schemaToFireStore) =>
+  setDoc(doc(db, collectionName, uid), schemaToFireStore);
 
-export const getDocFromStore = (DB_NAME, uid) => doc(db, DB_NAME, uid);
+export const getDocFromStore = (collectionName, uid) =>
+  doc(db, collectionName, uid);
 
-export const deleteDocument = async (DB_NAME, uid) => {
-  const docRef = doc(db, DB_NAME, uid);
+export const deleteDocument = async (collectionName, uid) => {
+  const docRef = doc(db, collectionName, uid);
   await deleteDoc(docRef);
 };
 
-export const updateRecord = async (DB_NAME, id, data) => {
-  const docRef = doc(db, DB_NAME, id); // Reference to the document
+export const updateRecord = async (collectionName, id, data) => {
+  const docRef = doc(db, collectionName, id); // Reference to the document
   await updateDoc(docRef, data);
 };
 
-export const getAllDocsFromStore = async (DB_NAME, options = {}) => {
+export const getAllDocsFromStore = async (collectionName, options = {}) => {
   const { filters = [], order = [], pagination = {}, search = {} } = options;
 
   // Reference to the Firestore collection
-  let queryRef = collection(db, DB_NAME);
+  let queryRef = collection(db, collectionName);
 
   // Apply additional filters
   filters.forEach(({ field, operator, value }) => {
@@ -115,23 +116,22 @@ export const getAllDocsFromStore = async (DB_NAME, options = {}) => {
     queryRef = query(queryRef, orderBy(field, direction));
   });
 
-  // Apply search filters if provided
-  if (search?.field && search?.value) {
-    // Ensure the search field is included in the order array
-    const isSearchFieldOrdered = order?.some(
-      (orderItem) => orderItem?.field === search?.field,
+  // Apply search filters specifically for email
+  if (search?.field === 'email' && search?.value) {
+    // Add orderBy for email if not already sorted
+    const isEmailOrdered = order?.some(
+      (orderItem) => orderItem?.field === 'email',
     );
 
-    // Apply orderBy if not already ordered
-    if (!isSearchFieldOrdered) {
-      queryRef = query(queryRef, orderBy(search?.field));
+    if (!isEmailOrdered) {
+      queryRef = query(queryRef, orderBy('email'));
     }
 
-    // Apply range search (startAt and endAt) for string search
+    // Perform prefix matching for email
     queryRef = query(
       queryRef,
-      startAt(search?.value),
-      endAt(`${search?.value}\uf8ff`), // To handle fuzzy search for strings
+      startAt(search?.value?.toLowerCase()),
+      endAt(`${search?.value?.toLowerCase()}\uf8ff`),
     );
   }
 
@@ -166,4 +166,52 @@ export const getAllDocsFromStore = async (DB_NAME, options = {}) => {
   }));
 
   return { data, totalCount, lastVisible };
+};
+
+export const exportDataAsCSV = async (collectionName, fieldOrder) => {
+  const querySnapshot = await getDocs(collection(db, collectionName));
+  const rawData = querySnapshot.docs.map((singleDoc) => ({
+    id: singleDoc?.id,
+    ...singleDoc?.data(),
+  }));
+
+  if (rawData.length === 0) {
+    messageContext.info('No data found to export.');
+    return;
+  }
+
+  const normalizedData = rawData.map((rowDataDoc) => {
+    const orderedDoc = {};
+    fieldOrder.forEach((field) => {
+      orderedDoc[field] = rowDataDoc[field] || '';
+    });
+    return orderedDoc;
+  });
+
+  const headers = fieldOrder.join(',');
+  const rows = normalizedData
+    .map((formatedSingleDoc) =>
+      fieldOrder
+        .map((field) => {
+          const value = formatedSingleDoc[field];
+          return typeof value === 'string' && value.includes(',')
+            ? `"${value}"`
+            : value;
+        })
+        .join(','),
+    )
+    .join('\n');
+
+  const csvContent = `${headers}\n${rows}`;
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  // eslint-disable-next-line no-undef
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${collectionName}.csv`;
+  a.click();
+
+  URL.revokeObjectURL(url);
 };
